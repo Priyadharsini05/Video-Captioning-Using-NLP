@@ -162,7 +162,6 @@ class MSRVTTDataset(Dataset):
         video_path = os.path.join(self.video_folder, f"{video_id}.mp4")
         frames = self.extract_frames(video_path)
 
-        # ✅ Random caption from list
         caption = random.choice(self.video_captions[video_id])
         tokens = ["<SOS>"] + caption.lower().strip().split() + ["<EOS>"]
         caption_indices = [self.word2idx.get(word, self.word2idx["<UNK>"]) for word in tokens]
@@ -210,7 +209,7 @@ sliced_captions = dict(list(train_captions.items())[:200])
 
 dataset = MSRVTTDataset(
     video_folder="/kaggle/input/msrvtt/TrainValVideo",
-    video_captions=sliced_captions,  # ✅ use sliced subset
+    video_captions=sliced_captions,
     word2idx=word2idx,
     transform=transform,
     max_len=20
@@ -282,7 +281,7 @@ for epoch in range(num_epochs):
         loop.set_postfix(loss=loss.item())
 
     avg_loss = total_loss / len(dataloader)
-    print(f"✅ Epoch {epoch+1} completed. Avg Loss: {avg_loss:.4f}")
+    print(f"Epoch {epoch+1} completed. Avg Loss: {avg_loss:.4f}")
 
 def generate_caption(model, frames, word2idx, idx2word, max_len=20, device='cpu', temperature=1.0):
     model.eval()
@@ -301,7 +300,7 @@ def generate_caption(model, frames, word2idx, idx2word, max_len=20, device='cpu'
             hiddens, states = model.decoder.lstm(lstm_input, states)
             output = model.decoder.linear(hiddens.squeeze(1))  # (1, vocab_size)
 
-            # ✅ Apply temperature and sample
+            # Apply temperature and sample
             probs = torch.softmax(output / temperature, dim=1)
             predicted = torch.multinomial(probs, 1).item()
 
@@ -320,4 +319,4 @@ model.eval()
 
 frames, _ = dataset[0]  # get sample video
 caption = generate_caption(model, frames, word2idx, idx2word, device=device, temperature=0.8)
-print("📝 Generated Caption:", caption)
+print("Generated Caption:", caption)
